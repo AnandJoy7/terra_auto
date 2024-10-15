@@ -33,7 +33,7 @@ pipeline {
         stage('Run Terraform Script') {
             steps {
                 // Execute the Python script
-                sh 'python3 your_script.py'
+                sh 'python3 terraform_automation.py'
             }
         }
     }
