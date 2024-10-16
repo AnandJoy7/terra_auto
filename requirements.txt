@@ -1,0 +1,3 @@
+boto3==1.26.0  # AWS SDK for Python
+requests==2.28.1  # For making HTTP requests
+pytest==7.1.2  # For testing your Python code (if applicable)
