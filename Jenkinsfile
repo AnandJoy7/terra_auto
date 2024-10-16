@@ -2,52 +2,60 @@ pipeline {
     agent any 
 
     environment {
-        // Define your credentials in Jenkins and refer to them here
-        AWS_CREDENTIALS = credentials('aws-credentials') // Jenkins ID for AWS credentials
-        GITHUB_CREDENTIALS = credentials('github-credentials') // Jenkins ID for GitHub credentials
+        // Define AWS and GitHub credentials in Jenkins
+        AWS_ACCESS_KEY_ID     = credentials('aws-access-key') // AWS access key ID from Jenkins credentials
+        AWS_SECRET_ACCESS_KEY = credentials('aws-secret-key') // AWS secret access key from Jenkins credentials
+        GITHUB_CREDENTIALS    = credentials('github-credentials') // GitHub credentials from Jenkins
+        AWS_DEFAULT_REGION    = 'us-east-1' // Change to your desired AWS region
     }
 
     stages {
         stage('Checkout Code') {
             steps {
-                // Clone the GitHub repository
-                git url: 'https://github.com/AnandJoy7/terra_auto.git', credentialsId: 'github-credentials'
-            }
-        }
-        stage('AWS Credential Configuration') {
-            steps {
-                // Set AWS credentials
                 script {
-                    env.AWS_ACCESS_KEY_ID = AWS_CREDENTIALS.accessKey
-                    env.AWS_SECRET_ACCESS_KEY = AWS_CREDENTIALS.secretKey
-                    env.AWS_DEFAULT_REGION = 'us-east-1' // Change to your desired region
+                    // Clone the GitHub repository into the 'terraform' directory
+                    dir('terraform') {
+                        git(
+                            url: 'https://github.com/AnandJoy7/terra_auto.git',
+                            branch: 'main',
+                            credentialsId: 'github-credentials'
+                        )
+                    }
                 }
             }
         }
+
         stage('Install Python Requirements') {
             steps {
-                // Install required packages
-                sh 'python3 -m pip install -r requirements.txt'
+                // Install the required Python packages from the 'terraform' directory
+                dir('terraform') {
+                    sh 'python3 -m pip install -r requirements.txt'
+                }
             }
         }
+
         stage('Run Terraform Script') {
             steps {
-                // Execute the Python script
-                sh 'python3 terraform_automation.py'
+                // Run the Python Terraform automation script from the 'terraform' directory
+                dir('terraform') {
+                    sh 'python3 terraform_automation.py'
+                }
             }
         }
     }
 
     post {
         always {
-            // Archive Terraform plan output for later reference
-            archiveArtifacts artifacts: 'terraform_plan_output.txt', allowEmptyArchive: true
+            // Archive Terraform plan output for later reference, if it exists
+            dir('terraform') {
+                archiveArtifacts artifacts: 'terraform_plan_output.txt', allowEmptyArchive: true
+            }
         }
         success {
             echo 'Terraform script executed successfully.'
         }
         failure {
-            echo 'Terraform script execution failed.'
+            echo 'Terraform script execution failed. Please check the logs.'
         }
     }
 }
