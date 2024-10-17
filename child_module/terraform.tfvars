@@ -27,4 +27,13 @@ vpc_configs = {
       Environment = "staging"
     }
   }
+  "vpc4" = {
+    cidr_block           = "10.3.0.0/16"
+    enable_dns_support   = false
+    enable_dns_hostnames = false
+    tags = {
+      Name = "vpc4"
+      Environment = "cilent"
+    }
+  }
 }
